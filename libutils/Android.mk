@@ -71,6 +71,7 @@ LOCAL_MODULE:= libutils
 LOCAL_STATIC_LIBRARIES := liblog
 LOCAL_CFLAGS += $(host_commonCflags)
 LOCAL_MULTILIB := both
+LOCAL_C_INCLUDES += external/safe-iop/include
 include $(BUILD_HOST_STATIC_LIBRARY)
 
 
@@ -109,6 +110,7 @@ LOCAL_SHARED_LIBRARIES := \
 include external/stlport/libstlport.mk
 
 LOCAL_MODULE:= libutils
+LOCAL_C_INCLUDES += external/safe-iop/include
 include $(BUILD_STATIC_LIBRARY)
 
 # For the device, shared
@@ -122,6 +124,7 @@ LOCAL_SHARED_LIBRARIES := \
         libdl \
         liblog
 LOCAL_CFLAGS := -Werror
+LOCAL_C_INCLUDES += external/safe-iop/include
 
 include external/stlport/libstlport.mk
 
@@ -129,6 +132,19 @@ include $(BUILD_SHARED_LIBRARY)
 
 # Include subdirectory makefiles
 # ============================================================
+include $(CLEAR_VARS)
+LOCAL_MODULE := SharedBufferTest
+LOCAL_STATIC_LIBRARIES := libutils libcutils
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SRC_FILES := SharedBufferTest.cpp
+include $(BUILD_NATIVE_TEST)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := SharedBufferTest
+LOCAL_STATIC_LIBRARIES := libutils libcutils
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SRC_FILES := SharedBufferTest.cpp
+include $(BUILD_HOST_NATIVE_TEST)
 
 # If we're building with ONE_SHOT_MAKEFILE (mm, mmm), then what the framework
 # team really wants is to build the stuff defined by this makefile.

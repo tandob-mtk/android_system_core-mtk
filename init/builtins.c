@@ -49,6 +49,10 @@
 
 #include <private/android_filesystem_config.h>
 
+#if BOOTCHART
+#include "bootchart.h"
+#endif
+
 int add_environment(const char *name, const char *value);
 
 extern int init_module(void *, unsigned long, const char *);
@@ -202,23 +206,35 @@ int do_chroot(int nargs, char **args)
 
 int do_class_start(int nargs, char **args)
 {
-        /* Starting a class does not start services
-         * which are explicitly disabled.  They must
-         * be started individually.
-         */
+    char prop[PROP_NAME_MAX];
+    snprintf(prop, PROP_NAME_MAX, "class_start:%s", args[1]);
+
+    /* Starting a class does not start services
+     * which are explicitly disabled.  They must
+     * be started individually.
+     */
     service_for_each_class(args[1], service_start_if_not_disabled);
+    action_for_each_trigger(prop, action_add_queue_tail);
     return 0;
 }
 
 int do_class_stop(int nargs, char **args)
 {
+    char prop[PROP_NAME_MAX];
+    snprintf(prop, PROP_NAME_MAX, "class_stop:%s", args[1]);
+
     service_for_each_class(args[1], service_stop);
+    action_for_each_trigger(prop, action_add_queue_tail);
     return 0;
 }
 
 int do_class_reset(int nargs, char **args)
 {
+    char prop[PROP_NAME_MAX];
+    snprintf(prop, PROP_NAME_MAX, "class_reset:%s", args[1]);
+
     service_for_each_class(args[1], service_reset);
+    action_for_each_trigger(prop, action_add_queue_tail);
     return 0;
 }
 
@@ -610,8 +626,12 @@ int do_mount_all(int nargs, char **args)
          * not booting into ffbm then trigger that action.
          */
         property_get("ro.bootmode", boot_mode);
-        if (strncmp(boot_mode, "ffbm", 4))
+        if (strncmp(boot_mode, "ffbm", 4)) {
+#if BOOTCHART
+            queue_builtin_action(bootchart_init_action, "bootchart_init");
+#endif
             action_for_each_trigger("nonencrypted", action_add_queue_tail);
+        }
     } else if (ret == FS_MGR_MNTALL_DEV_NEEDS_RECOVERY) {
         /* Setup a wipe via recovery, and reboot into recovery */
         ERROR("fs_mgr_mount_all suggested recovery, so wiping data via recovery.\n");

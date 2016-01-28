@@ -57,6 +57,7 @@
 #include "util.h"
 #include "ueventd.h"
 #include "watchdogd.h"
+#include "vendor_init.h"
 
 struct selabel_handle *sehandle;
 struct selabel_handle *sehandle_prop;
@@ -514,6 +515,9 @@ static void msg_restart(const char *name)
 
 void handle_control_message(const char *msg, const char *arg)
 {
+    if (!vendor_handle_control_message(msg, arg))
+        return;
+
     if (!strcmp(msg,"start")) {
         msg_start(arg);
     } else if (!strcmp(msg,"stop")) {
@@ -857,7 +861,7 @@ static int queue_property_triggers_action(int nargs, char **args)
 }
 
 #if BOOTCHART
-static int bootchart_init_action(int nargs, char **args)
+int bootchart_init_action(int nargs, char **args)
 {
     bootchart_count = bootchart_init();
     if (bootchart_count < 0) {
@@ -1145,11 +1149,6 @@ int main(int argc, char **argv)
     }
     /* run all property triggers based on current state of the properties */
     queue_builtin_action(queue_property_triggers_action, "queue_property_triggers");
-
-
-#if BOOTCHART
-    queue_builtin_action(bootchart_init_action, "bootchart_init");
-#endif
 
     for(;;) {
         int nr, i, timeout = -1;
