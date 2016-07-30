@@ -653,7 +653,7 @@ service debuggerd64 /system/bin/debuggerd64
 
 service surfaceflinger /system/bin/surfaceflinger
     class core
-    user root
+    user system
     group graphics drmrpc
     onrestart restart zygote
 
@@ -664,7 +664,7 @@ service drm /system/bin/drmserver
 
 service media /system/bin/mediaserver
     class main
-    user root
+    user media
     group audio camera inet net_bt net_bt_admin net_bw_acct drmrpc mediadrm qcom_diag
     ioprio rt 4
 
